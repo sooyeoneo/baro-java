@@ -6,7 +6,7 @@ import com.example.barojava.dto.SignUpRequestDto;
 
 public interface AuthService {
 
-    AuthResponseDto signUp(SignUpRequestDto requestDto);
-    String login(LoginRequestDto requestDto);
+    AuthResponseDto signUp(SignUpRequestDto signUpRequestDto);
+    String login(LoginRequestDto loginRequestDto);
     AuthResponseDto grantAdminRole(Long userId, String requesterUsername);
 }

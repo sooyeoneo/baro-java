@@ -28,16 +28,16 @@ public class AuthServiceImpl implements AuthService {
     private final JwtProvider jwtProvider;
 
     @Override
-    public AuthResponseDto signUp(SignUpRequestDto requestDto) {
+    public AuthResponseDto signUp(SignUpRequestDto signUpRequestDto) {
 
-        if (userRepository.existsByUsername(requestDto.getUsername())) {
+        if (userRepository.existsByUsername(signUpRequestDto.getUsername())) {
             throw new CustomException(USER_ALREADY_EXISTS);
         }
 
         User user = User.builder()
-                .username(requestDto.getUsername())
-                .password(passwordEncoder.encode(requestDto.getPassword()))
-                .nickname(requestDto.getNickname())
+                .username(signUpRequestDto.getUsername())
+                .password(passwordEncoder.encode(signUpRequestDto.getPassword()))
+                .nickname(signUpRequestDto.getNickname())
                 .roles(Set.of(Role.USER))
                 .build();
 
@@ -47,12 +47,12 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public String login(LoginRequestDto requestDto) {
+    public String login(LoginRequestDto loginRequestDto) {
 
-        User user = userRepository.findByUsername(requestDto.getUsername())
+        User user = userRepository.findByUsername(loginRequestDto.getUsername())
                 .orElseThrow(() -> new CustomException(INVALID_CREDENTIALS));
 
-        if (!passwordEncoder.matches(requestDto.getPassword(), user.getPassword())) {
+        if (!passwordEncoder.matches(loginRequestDto.getPassword(), user.getPassword())) {
             throw new CustomException(INVALID_CREDENTIALS);
         }
 
