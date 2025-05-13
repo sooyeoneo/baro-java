@@ -6,6 +6,7 @@ import com.example.barojava.dto.SignUpRequestDto;
 import com.example.barojava.entity.Role;
 import com.example.barojava.entity.User;
 import com.example.barojava.exception.CustomException;
+import com.example.barojava.jwt.JwtProvider;
 import com.example.barojava.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -16,6 +17,7 @@ import java.util.Set;
 import static com.example.barojava.exception.ErrorCode.ACCESS_DENIED;
 import static com.example.barojava.exception.ErrorCode.INVALID_CREDENTIALS;
 import static com.example.barojava.exception.ErrorCode.USER_ALREADY_EXISTS;
+import static com.example.barojava.exception.ErrorCode.USER_NOT_FOUND;
 
 @Service
 @RequiredArgsConstructor
@@ -67,7 +69,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         User target = userRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(ACCESS_DENIED));
+                .orElseThrow(() -> new CustomException(USER_NOT_FOUND));
 
         target.addRole(Role.ADMIN);
 

@@ -27,11 +27,13 @@ public class InMemoryUserRepository implements UserRepository {
                 .build();
 
         store.put(id, savedUser);
+
         return savedUser;
     }
 
     @Override
     public Optional<User> findByUsername(String username) {
+
         return store.values().stream()
                 .filter(user -> user.getUsername().equals(username))
                 .findFirst();
@@ -39,17 +41,20 @@ public class InMemoryUserRepository implements UserRepository {
 
     @Override
     public Optional<User> findById(Long id) {
+
         return Optional.ofNullable(store.get(id));
     }
 
     @Override
     public boolean existsByUsername(String username) {
+
         return store.values().stream()
                 .anyMatch(user -> user.getUsername().equals(username));
     }
 
     @Override
     public void clear() {
+
         store.clear();
         idGenerator.set(1L);
     }
