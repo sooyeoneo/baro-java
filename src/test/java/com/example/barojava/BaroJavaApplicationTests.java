@@ -9,5 +9,4 @@ class BaroJavaApplicationTests {
     @Test
     void contextLoads() {
     }
-
 }
