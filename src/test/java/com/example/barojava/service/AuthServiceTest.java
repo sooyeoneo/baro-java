@@ -2,8 +2,9 @@ package com.example.barojava.service;
 
 import com.example.barojava.dto.LoginRequestDto;
 import com.example.barojava.dto.SignUpRequestDto;
-import com.example.barojava.entity.Role;
-import com.example.barojava.entity.User;
+import com.example.barojava.dto.TokenResponseDto;
+import com.example.barojava.model.Role;
+import com.example.barojava.model.User;
 import com.example.barojava.exception.CustomException;
 import com.example.barojava.jwt.JwtProvider;
 import com.example.barojava.repository.UserRepository;
@@ -58,7 +59,7 @@ class AuthServiceTest {
     @Test
     @DisplayName("회원가입 실패 - 이미 존재하는 사용자")
     void signUp_fail_userExists() {
-        SignUpRequestDto dto = new SignUpRequestDto("testuser", "1234", "멘토스");
+        SignUpRequestDto dto = new SignUpRequestDto("testuser", "1234", "그로구");
 
         when(userRepository.existsByUsername("testuser")).thenReturn(true);
 
@@ -74,16 +75,21 @@ class AuthServiceTest {
                 .id(1L)
                 .username("testuser")
                 .password("encodedPwd")
-                .nickname("멘토스")
+                .nickname("그로구")
                 .roles(Set.of(Role.USER))
                 .build();
 
         when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(user));
         when(passwordEncoder.matches("1234", "encodedPwd")).thenReturn(true);
-        when(jwtProvider.createToken("testuser", user.getRoles())).thenReturn("jwt.token.here");
+        when(jwtProvider.createAccessToken("testuser", user.getRoles())).thenReturn("access.token.here");
+        when(jwtProvider.createRefreshToken("testuser")).thenReturn("refresh.token.here");
 
-        String token = authService.login(dto);
-        assertEquals("jwt.token.here", token);
+        TokenResponseDto token = authService.login(dto);
+
+        assertEquals("access.token.here", token.getAccessToken());
+        assertEquals("refresh.token.here", token.getRefreshToken());
+        assertEquals("Bearer", token.getTokenType());
+        assertEquals(7200, token.getExpiresIn());
     }
 
     @Test
