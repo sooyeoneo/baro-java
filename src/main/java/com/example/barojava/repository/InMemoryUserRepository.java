@@ -1,6 +1,6 @@
 package com.example.barojava.repository;
 
-import com.example.barojava.entity.User;
+import com.example.barojava.model.User;
 import org.springframework.stereotype.Repository;
 
 import java.util.HashMap;

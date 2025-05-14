@@ -1,4 +1,4 @@
-package com.example.barojava.entity;
+package com.example.barojava.model;
 
 public enum Role {
 

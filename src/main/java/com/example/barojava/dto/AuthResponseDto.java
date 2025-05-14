@@ -1,6 +1,6 @@
 package com.example.barojava.dto;
 
-import com.example.barojava.entity.Role;
+import com.example.barojava.model.Role;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 

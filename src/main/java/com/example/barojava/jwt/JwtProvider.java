@@ -1,6 +1,6 @@
 package com.example.barojava.jwt;
 
-import com.example.barojava.entity.Role;
+import com.example.barojava.model.Role;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -29,74 +29,63 @@ public class JwtProvider {
     private String secret;
 
     @Value("${jwt.access-token-expiration}")
-    private long accessTokenExpiration;
+    private long accessTokenExpiry;
 
     @Value("${jwt.refresh-token-expiration}")
-    private long refreshTokenExpiration;
+    private long refreshTokenExpiry;
 
     private Key key;
 
     @PostConstruct
     public void init() {
-
         byte[] keyBytes = Decoders.BASE64.decode(secret);
         this.key = Keys.hmacShaKeyFor(keyBytes);
     }
 
+    // Access / Refresh 토큰 생성
     public String createAccessToken(String username, Set<Role> roles) {
-
-        return createToken(username, roles, accessTokenExpiration);
+        return createToken(username, roles, accessTokenExpiry);
     }
-
     public String createRefreshToken(String username) {
-
-        return createToken(username, Collections.emptySet(), refreshTokenExpiration);
+        return createToken(username, Collections.emptySet(), refreshTokenExpiry);
     }
 
-    public String createToken(String username, Set<Role> roles, long ttl) {
-
+    private String createToken(String username, Set<Role> roles, long ttl) {
         Date now = new Date();
-        Date expiry = new Date(now.getTime() + ttl);
-
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("roles", roles.stream().map(Enum::name).collect(Collectors.toList()));
+        Date exp = new Date(now.getTime() + ttl);
+        Map<String,Object> claims = new HashMap<>();
+        claims.put("roles", roles.stream().map(Enum::name).toList());
 
         return Jwts.builder()
                 .setSubject(username)
                 .addClaims(claims)
                 .setIssuedAt(now)
-                .setExpiration(expiry)
+                .setExpiration(exp)
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    public String getUsername(String token) {
-
-        return parseClaims(token).getSubject();
-    }
-
-    public Set<Role> getRoles(String token) {
-
-        Claims claims = parseClaims(token);
-        List<String> roleNames = claims.get("roles", List.class);
-
-        return roleNames.stream()
-                .map(Role::valueOf)
-                .collect(Collectors.toSet());
-    }
-
     public boolean validateToken(String token) {
-
         try {
-            parseClaims(token);
+            Jwts.parserBuilder().setSigningKey(key).build()
+                    .parseClaimsJws(token);
             return true;
-        } catch (JwtException | IllegalArgumentException exception) {
+        } catch (JwtException | IllegalArgumentException e) {
             return false;
         }
     }
 
-    private Claims parseClaims(String token) {
+    public String getUsername(String token) {
+        return parseClaims(token).getSubject();
+    }
 
+    @SuppressWarnings("unchecked")
+    public Set<Role> getRoles(String token) {
+        List<String> names = parseClaims(token).get("roles", List.class);
+        return names.stream().map(Role::valueOf).collect(Collectors.toSet());
+    }
+
+    private Claims parseClaims(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(key)
                 .build()
