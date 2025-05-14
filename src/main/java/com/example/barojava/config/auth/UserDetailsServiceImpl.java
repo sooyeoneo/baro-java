@@ -1,9 +1,9 @@
 package com.example.barojava.config.auth;
 
 import com.example.barojava.model.User;
+import com.example.barojava.repository.UserRepository;
 import com.example.barojava.exception.CustomException;
 import com.example.barojava.exception.ErrorCode;
-import com.example.barojava.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
