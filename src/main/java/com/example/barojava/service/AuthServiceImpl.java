@@ -4,10 +4,10 @@ import com.example.barojava.dto.AuthResponseDto;
 import com.example.barojava.dto.LoginRequestDto;
 import com.example.barojava.dto.SignUpRequestDto;
 import com.example.barojava.dto.TokenResponseDto;
-import com.example.barojava.model.Role;
-import com.example.barojava.model.User;
 import com.example.barojava.exception.CustomException;
 import com.example.barojava.jwt.JwtProvider;
+import com.example.barojava.model.Role;
+import com.example.barojava.model.User;
 import com.example.barojava.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -15,10 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Set;
 
-import static com.example.barojava.exception.ErrorCode.ACCESS_DENIED;
-import static com.example.barojava.exception.ErrorCode.INVALID_CREDENTIALS;
-import static com.example.barojava.exception.ErrorCode.USER_ALREADY_EXISTS;
-import static com.example.barojava.exception.ErrorCode.USER_NOT_FOUND;
+import static com.example.barojava.exception.ErrorCode.*;
 
 @Service
 @RequiredArgsConstructor
@@ -29,43 +26,51 @@ public class AuthServiceImpl implements AuthService {
     private final JwtProvider jwtProvider;
 
     @Override
-    public AuthResponseDto signUp(SignUpRequestDto signUpRequestDto) {
+    public AuthResponseDto signUp(SignUpRequestDto request) {
 
-        if (userRepository.existsByUsername(signUpRequestDto.getUsername())) {
+        if (userRepository.existsByUsername(request.getUsername())) {
             throw new CustomException(USER_ALREADY_EXISTS);
         }
 
         User user = User.builder()
-                .username(signUpRequestDto.getUsername())
-                .password(passwordEncoder.encode(signUpRequestDto.getPassword()))
-                .nickname(signUpRequestDto.getNickname())
+                .username(request.getUsername())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .nickname(request.getNickname())
                 .roles(Set.of(Role.USER))
                 .build();
 
-        User savedUser =userRepository.save(user);
-
+        User savedUser = userRepository.save(user);
         return new AuthResponseDto(savedUser.getUsername(), savedUser.getNickname(), savedUser.getRoles());
     }
 
     @Override
-    public TokenResponseDto login(LoginRequestDto loginRequestDto) {
-
-        User user = userRepository.findByUsername(loginRequestDto.getUsername())
+    public TokenResponseDto login(LoginRequestDto request) {
+        User user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new CustomException(INVALID_CREDENTIALS));
 
-        if (!passwordEncoder.matches(loginRequestDto.getPassword(), user.getPassword())) {
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new CustomException(INVALID_CREDENTIALS);
         }
 
         String accessToken = jwtProvider.createAccessToken(user.getUsername(), user.getRoles());
         String refreshToken = jwtProvider.createRefreshToken(user.getUsername());
 
-        return new TokenResponseDto(
-                accessToken,
-                refreshToken,
-                "Bearer",
-                7200
-        );
+        return new TokenResponseDto(accessToken, refreshToken, "Bearer", 7200);
+    }
+
+    @Override
+    public TokenResponseDto reissue(String refreshToken) {
+        if (!jwtProvider.validateToken(refreshToken)) {
+            throw new CustomException(INVALID_TOKEN);
+        }
+
+        String username = jwtProvider.getUsername(refreshToken);
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new CustomException(USER_NOT_FOUND));
+
+        String newAccessToken = jwtProvider.createAccessToken(user.getUsername(), user.getRoles());
+
+        return new TokenResponseDto(newAccessToken, refreshToken, "Bearer", 7200);
     }
 
     @Override
@@ -81,7 +86,6 @@ public class AuthServiceImpl implements AuthService {
                 .orElseThrow(() -> new CustomException(USER_NOT_FOUND));
 
         target.addRole(Role.ADMIN);
-
         return new AuthResponseDto(target.getUsername(), target.getNickname(), target.getRoles());
     }
 }

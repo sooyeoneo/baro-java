@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping
+@RequestMapping("/admin/users")
 @Tag(name = "Admin User API", description = "관리자 전용 사용자 권한 관리 API")
 @SecurityRequirement(name = "JWT")
 public class AdminUserController {
@@ -24,13 +24,11 @@ public class AdminUserController {
     private final AuthService authService;
 
     @Operation(summary = "관리자 권한 부여")
-    @PatchMapping
+    @PatchMapping("/{userId}/role")
     public ResponseEntity<AuthResponseDto> grantAdminRole(
             @Parameter(description = "관리자 권한을 줄 사용자 ID") @PathVariable Long userId,
             @AuthenticationPrincipal String requesterUsername) {
 
-        AuthResponseDto authResponseDto = authService.grantAdminRole(userId, requesterUsername);
-
-        return ResponseEntity.ok(authResponseDto);
+        return ResponseEntity.ok(authService.grantAdminRole(userId, requesterUsername));
     }
 }

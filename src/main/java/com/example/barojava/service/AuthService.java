@@ -9,5 +9,6 @@ public interface AuthService {
 
     AuthResponseDto signUp(SignUpRequestDto signUpRequestDto);
     TokenResponseDto login(LoginRequestDto loginRequestDto);
+    TokenResponseDto reissue(String refreshToken);
     AuthResponseDto grantAdminRole(Long userId, String requesterUsername);
 }
