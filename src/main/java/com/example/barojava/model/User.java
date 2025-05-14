@@ -24,7 +24,7 @@ public class User {
 
         // roles가 null이 아닌 경우에만 설정
         if (roles != null) {
-            this.roles = roles;
+            this.roles = new HashSet<>(roles);
         } else {
             // 기본값으로 USER 역할 추가
             this.roles.add(Role.USER);
