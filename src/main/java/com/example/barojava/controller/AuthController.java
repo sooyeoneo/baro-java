@@ -3,6 +3,7 @@ package com.example.barojava.controller;
 import com.example.barojava.dto.AuthResponseDto;
 import com.example.barojava.dto.LoginRequestDto;
 import com.example.barojava.dto.SignUpRequestDto;
+import com.example.barojava.dto.TokenResponseDto;
 import com.example.barojava.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -31,13 +32,11 @@ public class AuthController {
 
     @Operation(summary = "로그인")
     @PostMapping("/login")
-    public ResponseEntity<TokenResponse> login(@Valid @RequestBody LoginRequestDto loginRequestDto) {
+    public ResponseEntity<TokenResponseDto> login(@Valid @RequestBody LoginRequestDto loginRequestDto) {
 
-        String token = authService.login(loginRequestDto);
+        TokenResponseDto tokenResponseDto = authService.login(loginRequestDto);
 
-        return ResponseEntity.ok(new TokenResponse(token));
+        return ResponseEntity.ok(tokenResponseDto);
     }
-
-    private record TokenResponse(String token) {}
 }
 

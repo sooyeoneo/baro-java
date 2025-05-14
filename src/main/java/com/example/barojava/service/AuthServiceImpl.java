@@ -3,6 +3,7 @@ package com.example.barojava.service;
 import com.example.barojava.dto.AuthResponseDto;
 import com.example.barojava.dto.LoginRequestDto;
 import com.example.barojava.dto.SignUpRequestDto;
+import com.example.barojava.dto.TokenResponseDto;
 import com.example.barojava.entity.Role;
 import com.example.barojava.entity.User;
 import com.example.barojava.exception.CustomException;
@@ -47,7 +48,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public String login(LoginRequestDto loginRequestDto) {
+    public TokenResponseDto login(LoginRequestDto loginRequestDto) {
 
         User user = userRepository.findByUsername(loginRequestDto.getUsername())
                 .orElseThrow(() -> new CustomException(INVALID_CREDENTIALS));
@@ -56,7 +57,15 @@ public class AuthServiceImpl implements AuthService {
             throw new CustomException(INVALID_CREDENTIALS);
         }
 
-        return jwtProvider.createToken(user.getUsername(), user.getRoles());
+        String accessToken = jwtProvider.createAccessToken(user.getUsername(), user.getRoles());
+        String refreshToken = jwtProvider.createRefreshToken(user.getUsername());
+
+        return new TokenResponseDto(
+                accessToken,
+                refreshToken,
+                "Bearer",
+                7200
+        );
     }
 
     @Override

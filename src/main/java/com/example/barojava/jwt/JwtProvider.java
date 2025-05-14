@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -27,8 +28,11 @@ public class JwtProvider {
     @Value("${jwt.secret}")
     private String secret;
 
-    @Value("${jwt.expiration}")
-    private long expiration;
+    @Value("${jwt.access-token-expiration}")
+    private long accessTokenExpiration;
+
+    @Value("${jwt.refresh-token-expiration}")
+    private long refreshTokenExpiration;
 
     private Key key;
 
@@ -39,10 +43,20 @@ public class JwtProvider {
         this.key = Keys.hmacShaKeyFor(keyBytes);
     }
 
-    public String createToken(String username, Set<Role> roles) {
+    public String createAccessToken(String username, Set<Role> roles) {
+
+        return createToken(username, roles, accessTokenExpiration);
+    }
+
+    public String createRefreshToken(String username) {
+
+        return createToken(username, Collections.emptySet(), refreshTokenExpiration);
+    }
+
+    public String createToken(String username, Set<Role> roles, long ttl) {
 
         Date now = new Date();
-        Date expiry = new Date(now.getTime() + expiration);
+        Date expiry = new Date(now.getTime() + ttl);
 
         Map<String, Object> claims = new HashMap<>();
         claims.put("roles", roles.stream().map(Enum::name).collect(Collectors.toList()));
